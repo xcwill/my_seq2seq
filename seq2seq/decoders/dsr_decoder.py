@@ -25,9 +25,11 @@ import tensorflow as tf
 from seq2seq.decoders.rnn_decoder import RNNDecoder
 
 from seq2seq.contrib.seq2seq.helper import CustomHelper
+#add
+from seq2seq.extra.dsrnn import reward_nn
+from seq2seq.extra.successor import successor_nn
 
-
-class AttentionDecoderOutput(
+class DsrDecoderOutput(
     namedtuple("DecoderOutput", [
         "logits", "predicted_ids", "cell_output", "attention_scores",
         "attention_context"
@@ -37,8 +39,8 @@ class AttentionDecoderOutput(
   pass
 
 
-class AttentionDecoder(RNNDecoder):
-  """An RNN Decoder that uses attention over an input sequence.
+class DsrDecoder(RNNDecoder):
+  """An RNN Decoder that uses attention over an input sequence,combinating with DSR model.
 
   Args:
     cell: An instance of ` tf.contrib.rnn.RNNCell`
@@ -110,6 +112,14 @@ class AttentionDecoder(RNNDecoder):
 
     return finished, first_inputs, self.initial_state
 
+  # add
+  def _creat_dsr(self):
+    self.reward_nn = reward_nn(
+        params=self.params["reward.params"], mode=self.mode)
+    self.successor_nn = successor_nn(
+        params=self.params["successor.params"], mode=self.mode)
+    return self.reward_nn , self.successor_nn
+
   def compute_output(self, cell_output):
     """Computes the decoder outputs."""
 
@@ -140,6 +150,8 @@ class AttentionDecoder(RNNDecoder):
         activation_fn=None,
         scope="logits")
 
+
+
     return softmax_input, logits, att_scores, attention_context
 
   def _setup(self, initial_state, helper):
@@ -167,6 +179,13 @@ class AttentionDecoder(RNNDecoder):
     cell_output, cell_state = self.cell(inputs, state)# RNN的输出和新状态
     cell_output_new, logits, attention_scores, attention_context = \
       self.compute_output(cell_output)
+    #add
+    reward = self.reward_nn(cell_output_new)
+    m_sa = self.successor_nn(cell_output_new)
+
+    #TODO:创建cal_Q函数，计算Q值
+    Q_outputs = cal_Q(reward,m_sa)
+
 
     if self.reverse_scores_lengths is not None:
       attention_scores = tf.reverse_sequence(
@@ -185,6 +204,7 @@ class AttentionDecoder(RNNDecoder):
         attention_scores=attention_scores,
         attention_context=attention_context)
 
+    #TODO: 输入加入Q序列，修改next_inputs()
     finished, next_inputs, next_state = self.helper.next_inputs(
         time=time_, outputs=outputs, state=cell_state, sample_ids=sample_ids)
 

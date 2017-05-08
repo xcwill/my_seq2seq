@@ -118,6 +118,7 @@ class InputPipeline(Configurable):
 
 
 class ParallelTextInputPipeline(InputPipeline):
+
   """An input pipeline that reads two parallel (line-by-line aligned) text
   files.
 

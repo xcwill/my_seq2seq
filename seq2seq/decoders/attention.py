@@ -36,7 +36,11 @@ from seq2seq.configurable import Configurable
     func_name="att_sum_bahdanau",
     noinline=True)
 def att_sum_bahdanau(v_att, keys, query):
-  """Calculates a batch- and timweise dot product with a variable"""
+  """Calculates a batch- and timweise dot product with a variable
+  计算上一步的状态和每一个encoder输出的得分
+  a = v_att*tanh(W_a*s_i-1 +  U_a*h_j)
+  
+  """
   return tf.reduce_sum(v_att * tf.tanh(keys + tf.expand_dims(query, 1)), [2])
 
 
@@ -118,7 +122,7 @@ class AttentionLayer(GraphModule, Configurable):
         dtype=tf.float32)
     scores = scores * scores_mask + ((1.0 - scores_mask) * tf.float32.min)
 
-    # Normalize the scores
+    # Normalize the scores 把得分变成权重
     scores_normalized = tf.nn.softmax(scores, name="scores_normalized")
 
     # Calculate the weighted average of the attention inputs

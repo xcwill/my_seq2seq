@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Copyright 2017 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -297,6 +299,7 @@ class Seq2SeqModel(ModelBase):
     encoder_output = self.encode(features, labels)
     decoder_output, _, = self.decode(encoder_output, features, labels)
 
+# 判断是都是推理，实例化的predictions参数不一样
     if self.mode == tf.contrib.learn.ModeKeys.INFER:
       predictions = self._create_predictions(
           decoder_output=decoder_output, features=features, labels=labels)

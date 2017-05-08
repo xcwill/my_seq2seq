@@ -44,7 +44,9 @@ class AttentionSeq2Seq(BasicSeq2Seq):
 
   @staticmethod
   def default_params():
+      # 复制BasicSeq2Seq的超参，其实是model_base的
     params = BasicSeq2Seq.default_params().copy()
+      # 超参更新一下
     params.update({
         "attention.class": "AttentionLayerBahdanau",
         "attention.params": {}, # Arbitrary attention layer parameters
@@ -55,10 +57,12 @@ class AttentionSeq2Seq(BasicSeq2Seq):
         "decoder.params": {}  # Arbitrary parameters for the decoder
     })
     return params
-
+# 创建一个deconder
   def _create_decoder(self, encoder_output, features, _labels):
+      # 创建attention类
     attention_class = locate(self.params["attention.class"]) or \
       getattr(decoders.attention, self.params["attention.class"])
+      # 创建attention层
     attention_layer = attention_class(
         params=self.params["attention.params"], mode=self.mode)
 
@@ -71,7 +75,7 @@ class AttentionSeq2Seq(BasicSeq2Seq):
         reverse_scores_lengths = tf.tile(
             input=reverse_scores_lengths,
             multiples=[self.params["inference.beam_search.beam_width"]])
-
+    #返回一个带attention的decoder实例
     return self.decoder_class(
         params=self.params["decoder.params"],
         mode=self.mode,

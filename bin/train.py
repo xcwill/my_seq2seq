@@ -118,7 +118,7 @@ tf.flags.DEFINE_boolean("log_device_placement", False,
 
 FLAGS = tf.flags.FLAGS
 
-def create_experiment(output_dir):
+def create_experiment(output_dir):·
   """
   Creates a new Experiment instance.
 
@@ -138,7 +138,7 @@ def create_experiment(output_dir):
 
   train_options = training_utils.TrainOptions(
       model_class=FLAGS.model,
-      model_params=FLAGS.model_params)
+      model_params=FLAGS.model_params)  #由给定的模型名称和模型超参生成训练选项类
   # On the main worker, save training options
   if config.is_chief:
     gfile.MakeDirs(output_dir)
@@ -180,7 +180,7 @@ def create_experiment(output_dir):
         "class": train_options.model_class,
         "params": train_options.model_params
     }, models, mode=mode)
-    return model(features, labels, params)
+    return model(features, labels, params)  #通过给定的模型类和参数字典，实例化一个model
 
   estimator = tf.contrib.learn.Estimator(
       model_fn=model_fn,

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Copyright 2017 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -84,8 +86,8 @@ class BasicSeq2Seq(Seq2SeqModel):
     helper_train = tf_decode_helper.TrainingHelper(
         inputs=target_embedded[:, :-1],
         sequence_length=labels["target_len"] - 1)
-    decoder_initial_state = bridge()
-    return decoder(decoder_initial_state, helper_train)
+    decoder_initial_state = bridge()   #这里把中间向量送给decoder
+    return decoder(decoder_initial_state, helper_train)  #实例化decoder
 
   def _decode_infer(self, decoder, bridge, _encoder_output, features, labels):
     """Runs decoding in inference mode"""
