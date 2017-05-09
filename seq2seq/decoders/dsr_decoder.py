@@ -26,8 +26,8 @@ from seq2seq.decoders.rnn_decoder import RNNDecoder
 
 from seq2seq.contrib.seq2seq.helper import CustomHelper
 #add
-from seq2seq.extra.dsrnn import reward_nn
-from seq2seq.extra.successor import successor_nn
+from seq2seq.extra.dsrnn import reward_network
+from seq2seq.extra.successor import successor_network
 
 class DsrDecoderOutput(
     namedtuple("DecoderOutput", [
@@ -39,7 +39,7 @@ class DsrDecoderOutput(
   pass
 
 
-class DsrDecoder(RNNDecoder):
+class DsrDecoder(AttentionDecoder):
   """An RNN Decoder that uses attention over an input sequence,combinating with DSR model.
 
   Args:
@@ -73,8 +73,8 @@ class DsrDecoder(RNNDecoder):
                attention_values_length,
                attention_fn,
                reverse_scores_lengths=None,
-               name="attention_decoder"):
-    super(AttentionDecoder, self).__init__(params, mode, name)
+               name="dsr_decoder"):
+    super(DsrDecoder, self).__init__(params, mode, name)
     self.vocab_size = vocab_size
     self.attention_keys = attention_keys
     self.attention_values = attention_values
@@ -93,7 +93,7 @@ class DsrDecoder(RNNDecoder):
 
   @property
   def output_dtype(self):
-    return AttentionDecoderOutput(
+    return DsrDecoderOutput(
         logits=tf.float32,
         predicted_ids=tf.int32,
         cell_output=tf.float32,
@@ -113,13 +113,14 @@ class DsrDecoder(RNNDecoder):
     return finished, first_inputs, self.initial_state
 
   # add
-  def _creat_dsr(self):
-    self.reward_nn = reward_nn(
+  def _creat_dsr(self,outputs):
+    reward_nn = reward_network(
         params=self.params["reward.params"], mode=self.mode)
-    self.successor_nn = successor_nn(
+    successor_nn = successor_network(
         params=self.params["successor.params"], mode=self.mode)
-    return self.reward_nn , self.successor_nn
+    return reward_nn(outputs) , successor_nn(outputs)
 
+#TODO: 需要重写下面的方法
   def compute_output(self, cell_output):
     """Computes the decoder outputs."""
 
@@ -175,13 +176,12 @@ class DsrDecoder(RNNDecoder):
         sample_fn=helper.sample,
         next_inputs_fn=att_next_inputs)
 
-  def step(self, time_, inputs, state, name=None):
+  def step(self, time_, inputs, state, name=None,):
     cell_output, cell_state = self.cell(inputs, state)# RNN的输出和新状态
     cell_output_new, logits, attention_scores, attention_context = \
       self.compute_output(cell_output)
     #add
-    reward = self.reward_nn(cell_output_new)
-    m_sa = self.successor_nn(cell_output_new)
+    reward, m_sa = self._creat_dsr(cell_output_new)
 
     #TODO:创建cal_Q函数，计算Q值
     Q_outputs = cal_Q(reward,m_sa)

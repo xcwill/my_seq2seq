@@ -28,7 +28,7 @@ import tensorflow as tf
 from seq2seq.graph_module import GraphModule
 from seq2seq.configurable import Configurable
 
-class  successor_nn(GraphModule,Configurable):
+class  successor_network(GraphModule,Configurable):
     def __init__(self):
         GraphModule.__init__(self, name)
         Configurable.__init__(self, params, mode)
@@ -36,4 +36,9 @@ class  successor_nn(GraphModule,Configurable):
     def _build(self,outputs):
         # TODO: a fully connected network.
         # 后面还需要对输出m_sa求最大，再和reward的权重作乘。
+        tf.contrib.layers.fully_connected(
+            inputs=outputs,
+            num_outputs=outputs_size,
+            activation_fn=None,
+            scope="reward")
         return m_sa #一个tensor？

@@ -28,7 +28,9 @@ import tensorflow as tf
 from seq2seq.graph_module import GraphModule
 from seq2seq.configurable import Configurable
 
-class reward_nn(GraphModule, Configurable):
+from tensorflow.python.ops import init_ops
+
+class reward_network(GraphModule, Configurable):
 """
 构建reward网络，简单的线性回归模型
 """
@@ -40,9 +42,17 @@ class reward_nn(GraphModule, Configurable):
 
     def _build(self,outputs):
         outputs_size = tf.shape(outputs)[1]
+        dtype = outputs.dtype.base_dtype
+        # Set up the requested initialization.
+        init_mean = 0.0
+        init_stddev = 0.0
+
         reward = tf.contrib.layers.fully_connected(
-            inputs = outputs,
-            num_outputs = outputs_size,
-            activation_fn = None,
-            scope = "reward")
+            inputs=outputs,
+            num_outputs= 1,
+            weights_initializer=init_ops.random_normal_initializer(init_mean, init_stddev, dtype=dtype),dtype=dtype)
+            biases_initializer = init_ops.random_normal_initializer(init_mean, init_stddev, dtype=dtype),\
+                               dtype = dtype
+            activation_fn=None,
+            scope="reward")
         return reward

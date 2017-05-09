@@ -44,3 +44,8 @@ def cross_entropy_sequence_loss(logits, targets, sequence_length):
     losses = losses * tf.transpose(tf.to_float(loss_mask), [1, 0])
 
     return losses
+
+
+def reward_loss(reward_n,reward):
+    # @reward_n:计算出来的reward
+    # @reward：网络输出reward，可以是矩阵[]

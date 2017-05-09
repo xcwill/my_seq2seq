@@ -243,6 +243,7 @@ def dynamic_decode(decoder,
         next_finished = math_ops.logical_or(
             next_finished, time + 1 >= maximum_iterations)
 
+    #判断结构是否一样
       nest.assert_same_structure(state, decoder_state)
       nest.assert_same_structure(outputs_ta, next_outputs)
       nest.assert_same_structure(inputs, next_inputs)

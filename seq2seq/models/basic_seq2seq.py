@@ -87,7 +87,7 @@ class BasicSeq2Seq(Seq2SeqModel):
         inputs=target_embedded[:, :-1],
         sequence_length=labels["target_len"] - 1)
     decoder_initial_state = bridge()   #这里把中间向量送给decoder
-    return decoder(decoder_initial_state, helper_train)  #实例化decoder
+    return decoder(decoder_initial_state, helper_train)  #调用decoder对象的_build()
 
   def _decode_infer(self, decoder, bridge, _encoder_output, features, labels):
     """Runs decoding in inference mode"""
